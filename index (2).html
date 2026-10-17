@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block Quest overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}</style>
+</head>
+<body>
+<div id="r" style="padding:10px"></div>
+<script>
+/* EDIT THIS: change the text, colors and tasks, then save and upload again.
+   Mark a task done with done:true, or add ?done=1,3 to the address (task numbers). */
+const S={
+  title:'Quest Log',accent:'#55ff55',opacity:0.6,size:12,width:320,anim:'confetti',hgif:'',
+  shader:'Complementary Reimagined',texture:'Faithful 64x',showInfo:true,
+  tasks:[
+    {text:'Mine 64 diamonds',done:false,gif:''},
+    {text:'Build a Nether portal',done:true,gif:''},
+    {text:'Defeat the Ender Dragon',done:false,gif:''}
+  ]
+};
+
+const OCSS=`.ov{font-family:'Press Start 2P',ui-monospace,monospace;font-size:var(--fs);color:#fff;background:rgba(20,20,20,var(--op));border:4px solid #000;box-shadow:inset 3px 3px 0 rgba(255,255,255,.25),inset -3px -3px 0 rgba(0,0,0,.45);padding:12px;max-width:100%}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:var(--ac);text-shadow:2px 2px 0 #000;line-height:1.4}
+.hd img{height:calc(var(--fs)*2.6);image-rendering:pixelated}
+.pb{height:12px;background:#000;border:2px solid #555;margin-bottom:8px}.pb i{display:block;height:100%;background:var(--ac);transition:width .6s steps(8)}
+.t{position:relative;display:flex;align-items:center;gap:10px;padding:7px 4px;line-height:1.5;cursor:pointer;text-shadow:2px 2px 0 #000}
+.bx{flex:none;width:calc(var(--fs)*1.7);height:calc(var(--fs)*1.7);border:3px solid #000;background:#8b8b8b;box-shadow:inset 2px 2px 0 rgba(255,255,255,.45),inset -2px -2px 0 rgba(0,0,0,.4);display:grid;place-items:center;color:#55ff55;text-shadow:none}
+.t.d .bx:after{content:"\\2714"}
+.t img{height:calc(var(--fs)*2.2);max-width:calc(var(--fs)*3);object-fit:contain;image-rendering:pixelated}
+.t span{position:relative;word-break:break-word}
+.t.d span{color:#aaa}
+.t.d span:after{content:"";position:absolute;left:0;top:55%;height:3px;width:100%;background:#ffe14a}
+.t.just span:after{animation:st .5s steps(10)}
+@keyframes st{from{width:0}}
+.a-pop{animation:pop .6s}@keyframes pop{40%{transform:scale(1.18)}}
+.a-flash{animation:fl .8s}@keyframes fl{0%,60%{background:rgba(85,255,85,.5)}100%{background:transparent}}
+.a-shake{animation:sh .5s}@keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.a-slide{animation:sl .6s}@keyframes sl{from{transform:translateX(-40px);opacity:0}}
+.cf{position:absolute;width:8px;height:8px;left:var(--x);top:50%;pointer-events:none;animation:cf 1s ease-out forwards}
+@keyframes cf{to{transform:translate(var(--dx),var(--dy)) rotate(360deg);opacity:0}}
+.inf{margin-top:8px}
+.ir{display:flex;gap:8px;padding:4px;line-height:1.6;text-shadow:2px 2px 0 #000;word-break:break-word}
+.ir b{flex:none;font-weight:400;color:var(--ac)}
+@media(prefers-reduced-motion:reduce){.t,.cf,.ir{animation:none!important}}`;
+
+function runtime(root,S,onToggle){
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const done=S.tasks.filter(t=>t.done).length,n=S.tasks.length,pct=n?Math.round(done/n*100):0;
+  const prev=root._p;
+  let h='<div class="ov" style="--ac:'+esc(S.accent)+';--op:'+S.opacity+';--fs:'+S.size+'px;width:'+S.width+'px">';
+  h+='<div class="hd">'+(S.hgif?'<img src="'+S.hgif+'" alt="">':'')+'<div>'+esc(S.title)+' '+done+'/'+n+'</div></div>';
+  h+='<div class="pb"><i style="width:'+pct+'%"></i></div>';
+  S.tasks.forEach((t,i)=>{
+    const just=prev&&t.done&&!prev[i];
+    h+='<div class="t'+(t.done?' d':'')+(just?' just a-'+(S.anim==='confetti'?'pop':S.anim):'')+'"><div class="bx"></div>'+(t.gif?'<img src="'+t.gif+'" alt="">':'')+'<span>'+esc(t.text||'...')+'</span></div>';
+  });
+  h+='</div>';
+  if(S.showInfo){
+    const pi=root._i,ir=[['Shader',S.shader],['Texture',S.texture]].filter(r=>r[1]);
+    if(ir.length){
+      const sty='--ac:'+esc(S.accent)+';--op:'+S.opacity+';--fs:'+S.size+'px;width:'+S.width+'px';
+      h+='<div class="ov inf" style="'+sty+'">'+ir.map(r=>'<div class="ir'+(pi&&pi[r[0]]!==r[1]?' a-slide':'')+'"><b>'+r[0]+':</b><span>'+esc(r[1])+'</span></div>').join('')+'</div>';
+    }
+    root._i={};ir.forEach(r=>root._i[r[0]]=r[1]);
+  }
+  if(!root._s){const st=document.createElement('style');st.textContent=OCSS;document.head.appendChild(st);root._s=1}
+  root.innerHTML=h;
+  const rows=root.querySelectorAll('.t');
+  rows.forEach((el,i)=>{
+    el.onclick=()=>onToggle&&onToggle(i);
+    if(el.classList.contains('just')&&S.anim==='confetti'){
+      const cols=[S.accent,'#55ff55','#ffe14a','#5ac8fa','#ff6b6b'];
+      for(let k=0;k<22;k++){const c=document.createElement('i');c.className='cf';
+        c.style.cssText='--x:'+(10+Math.random()*80)+'%;--dx:'+((Math.random()-.5)*160)+'px;--dy:'+(-30-Math.random()*70)+'px;background:'+cols[k%5];
+        el.appendChild(c);setTimeout(()=>c.remove(),1100)}
+    }
+  });
+  root._p=S.tasks.map(t=>t.done);
+}
+
+const r=document.getElementById('r');
+var m=/[?&]done=([0-9,]*)/.exec(location.search);
+if(m){var ds=m[1].split(',');S.tasks.forEach(function(t,i){t.done=ds.indexOf(String(i+1))>-1})}
+function draw(){runtime(r,S,function(i){S.tasks[i].done=!S.tasks[i].done;draw()})}
+draw();
+</script>
+</body>
+</html>
